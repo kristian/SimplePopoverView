@@ -30,21 +30,20 @@
 #import "SimplePopoverView.h"
 
 #define kArrowSize CGSizeMake(18.f,36.f)
-#define kArrowClip 10.f //used for corner values
 #define kMinimumSize 70.f
 #define CAP(value,min,max) (value=MAX(min,MIN(max,value)))
 
 @interface SimplePopoverView() {
-    UIImageView* boxImageView;
-    UIImageView* arrowImageView;
+    CGPathRef draw;
 }
 
 -(NSString*)gravityForPoint:(CGPoint)point;
 -(SimplePopoverViewDirection)directionForGravity:(NSString*)gravity;
 -(SimplePopoverViewDirection)oppositeDirection:(SimplePopoverViewDirection)direction;
 
--(UIImage*)drawBox;
--(UIImage*)drawArrow;
+-(CGPathRef)drawBox:(CGSize)size;
+-(CGPathRef)drawBox:(CGSize)size sharpCornerAtGravity:(NSString*)gravity;
+-(CGPathRef)drawArrow:(CGAffineTransform)rotate;
 
 -(void)deviceOrientationDidChange:(NSNotification*)notification;
 
@@ -77,8 +76,9 @@
     CAP(layout.size.height,kMinimumSize,parentSize.height);
     layoutBox.size = layout.size;
     
-    CGPoint shift = CGPointZero;
+    CGAffineTransform layoutRotate = CGAffineTransformIdentity; NSString* layoutSharp = nil;
     if(SimplePopoverViewDirectionIsHorizontal(layoutDirection)) {
+        CGPoint shift = CGPointZero;
         layout.size.width += kArrowSize.width;
         layout.origin.y = layoutOrigin.y-layout.size.height/2;
              if(layout.origin.y<0) { shift.y+=/*-*/layout.origin.y; layout.origin.y = 0; }
@@ -94,8 +94,10 @@
                    layoutBox.size.width=(layout.size.width=MAX(kMinimumSize,layoutOrigin.x))-layoutArrow.size.width;
                 layout.origin.x = layoutOrigin.x-layout.size.width;
                 layoutBox.origin.x = 0.f;
-                layoutArrow.origin.x = layout.size.width-layoutArrow.size.width-kArrowClip;
-                arrowImageView.transform = CGAffineTransformMakeRotation(M_PI);
+                layoutArrow.origin.x = layout.size.width-layoutArrow.size.width;
+                layoutRotate = CGAffineTransformMakeRotation(M_PI);
+                     if(layoutArrow.origin.y<8.f) layoutSharp = kCAGravityTopRight;
+                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-8.f) layoutSharp = kCAGravityBottomRight;
                 break;
             case SimplePopoverViewDirectionRight:
                 if(layout.size.width+layoutOrigin.x>parentSize.width)
@@ -103,12 +105,14 @@
                 layout.origin.x = layoutOrigin.x;
                 layoutBox.origin.x = layoutArrow.size.width;
                 layoutArrow.origin.x = 0.f;
-                arrowImageView.transform = CGAffineTransformIdentity;
+                layoutRotate = CGAffineTransformIdentity;
+                     if(layoutArrow.origin.y<8.f) layoutSharp = kCAGravityTopLeft;
+                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-8.f) layoutSharp = kCAGravityBottomLeft;
                 break;
             default: break;
         }
-        layoutArrow.size.width += kArrowClip;
     } else if(SimplePopoverViewDirectionIsVertical(layoutDirection)) {
+        CGPoint shift = CGPointZero;
         layout.size.height += kArrowSize.width;
         layout.origin.x = layoutOrigin.x-layout.size.width/2;
              if(layout.origin.x<0) { shift.x+=/*-*/layout.origin.x; layout.origin.x = 0; }
@@ -124,8 +128,10 @@
                    layoutBox.size.height=(layout.size.height=MAX(kMinimumSize,layoutOrigin.y))-layoutArrow.size.height;
                 layout.origin.y = layoutOrigin.y-layout.size.height;
                 layoutBox.origin.y = 0.f;
-                layoutArrow.origin.y = layout.size.height-layoutArrow.size.height-kArrowClip;
-                arrowImageView.transform = CGAffineTransformMakeRotation(-M_PI_2);
+                layoutArrow.origin.y = layout.size.height-layoutArrow.size.height;
+                layoutRotate = CGAffineTransformMakeRotation(-M_PI_2);
+                     if(layoutArrow.origin.x<8.f) layoutSharp = kCAGravityBottomLeft;
+                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-8.f) layoutSharp = kCAGravityBottomRight;
                 break;
             case SimplePopoverViewDirectionDown:
                 if(layout.size.height+layoutOrigin.y>parentSize.height)
@@ -133,19 +139,88 @@
                 layout.origin.y = layoutOrigin.y;
                 layoutBox.origin.y = layoutArrow.size.height;
                 layoutArrow.origin.y = 0.f;
-                arrowImageView.transform = CGAffineTransformMakeRotation(M_PI_2);
+                layoutRotate = CGAffineTransformMakeRotation(M_PI_2);
+                     if(layoutArrow.origin.x<8.f) layoutSharp = kCAGravityTopLeft;
+                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-8.f) layoutSharp = kCAGravityTopRight;
                 break;
             default: break;
         }
-        layoutArrow.size.height += kArrowClip;
     }
     
+    CGPathRef drawBox=[self drawBox:layoutBox.size sharpCornerAtGravity:layoutSharp],drawArrow=[self drawArrow:layoutRotate];
+    CGPathRef (^translate)(CGPathRef,CGPoint) = ^CGPathRef(CGPathRef path,CGPoint point) {
+        CGAffineTransform translate = CGAffineTransformMakeTranslation(point.x,point.y);
+        return CGPathCreateCopyByTransformingPath(path,&translate);
+    };
+    draw = CGPathCreateMutable();
+    CGPathAddPath((CGMutablePathRef)draw,NULL,translate(drawBox,layoutBox.origin));
+    CGPathAddPath((CGMutablePathRef)draw,NULL,translate(drawArrow,layoutArrow.origin));
+    CGPathCloseSubpath((CGMutablePathRef)draw);
+    
     self.frame = layout;
-    boxImageView.frame = layoutBox;
-    arrowImageView.frame = layoutArrow;
-    [boxImageView setImage:[self drawBox]];
-    [arrowImageView setImage:[self drawArrow]];
-    contentView.frame = CGRectMake(contentInset.left,contentInset.right,layoutBox.size.width-contentInset.left-contentInset.right,layoutBox.size.height-contentInset.top-contentInset.bottom);
+    contentView.frame = CGRectMake(layoutBox.origin.x+contentInset.left,layoutBox.origin.y+contentInset.right,layoutBox.size.width-contentInset.left-contentInset.right,layoutBox.size.height-contentInset.top-contentInset.bottom);
+    
+    [self setNeedsDisplay];
+}
+
+-(CGPathRef)drawBox:(CGSize)size { return [self drawBox:size sharpCornerAtGravity:nil]; }
+-(CGPathRef)drawBox:(CGSize)size sharpCornerAtGravity:(NSString*)gravity {
+    const CGFloat radius = 10.f;
+    
+    CGMutablePathRef path = CGPathCreateMutable();
+    CGPathMoveToPoint(path,NULL,0.f,radius);
+    if(![kCAGravityBottomLeft isEqual:gravity]) {
+        CGPathAddLineToPoint(path,NULL,0.f,size.height-radius);
+        CGPathAddArc(path,NULL,radius,size.height-radius,radius,M_PI,M_PI_2,1);
+    } else CGPathAddLineToPoint(path,NULL,0.f,size.height);
+    if(![kCAGravityBottomRight isEqual:gravity]) {
+        CGPathAddLineToPoint(path,NULL,size.width-radius,size.height);
+        CGPathAddArc(path,NULL,size.width-radius,size.height-radius,radius,M_PI_2,0.f,1);
+    } else CGPathAddLineToPoint(path,NULL,size.width,size.height);
+    if(![kCAGravityTopRight isEqual:gravity]) {
+        CGPathAddLineToPoint(path,NULL,size.width,radius);
+        CGPathAddArc(path,NULL,size.width-radius,radius,radius,0.f,-M_PI_2,1);
+    } else CGPathAddLineToPoint(path,NULL,size.width,0.f);
+    if(![kCAGravityTopLeft isEqual:gravity]) {
+        CGPathAddLineToPoint(path,NULL,radius,0.f);
+        CGPathAddArc(path,NULL,radius,radius,radius,-M_PI_2,M_PI,1);
+    } else CGPathAddLineToPoint(path,NULL,0.f,0.f);
+    CGPathCloseSubpath(path);
+    
+    return path;
+}
+-(CGPathRef)drawArrow:(CGAffineTransform)rotate {
+    CGMutablePathRef path = CGPathCreateMutable();
+    
+    CGPathMoveToPoint(path,NULL,0,kArrowSize.height/2);
+    CGPathAddLineToPoint(path,NULL,kArrowSize.width,0);
+    CGPathAddLineToPoint(path,NULL,kArrowSize.width,kArrowSize.height);
+    CGPathCloseSubpath(path);
+    
+    if(!CGAffineTransformIsIdentity(rotate)) {
+        path = CGPathCreateMutableCopyByTransformingPath(path,&rotate);
+        CGRect bounds = CGPathGetBoundingBox(path);
+        CGAffineTransform translate = CGAffineTransformMakeTranslation(-bounds.origin.x,-bounds.origin.y);
+        path = CGPathCreateMutableCopyByTransformingPath(path,&translate);
+    }
+    
+    return path;
+}
+
+-(void)drawRect:(CGRect)rect {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextClearRect(context,rect);
+    
+    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+    CGColorRef color = CGColorCreate(colorspace,(float[]){18.0/255.0,29.0/255.0,48.0/255.0,1.0});
+    CGContextSetFillColorWithColor(context,tintColor?tintColor.CGColor:color);
+    
+    CGContextBeginPath(context);
+    CGContextAddPath(context,draw);
+    CGContextFillPath(context);
+    
+    CGColorSpaceRelease(colorspace);
+    CGColorRelease(color);
 }
 
 /*
@@ -164,7 +239,7 @@
  */
 -(NSString*)gravityForPoint:(CGPoint)point {
     CGSize size = parentViewController.view.frame.size;
-    BOOL (^above)(NSString* corner) = ^BOOL(NSString* corner) {
+    BOOL (^above)(NSString*) = ^BOOL(NSString* corner) {
         CGPoint cornerPoint = CGPointZero;
         if([kCAGravityTopRight isEqual:corner]||[kCAGravityBottomRight isEqual:corner]) //Right
             cornerPoint.x = size.width;
@@ -202,23 +277,17 @@
         origin = newOrigin;
         parentViewController = newParentViewController;
         
-        self.alpha = 0;
+        self.alpha = 0; self.opaque = NO;
         self.backgroundColor = [UIColor clearColor];
         direction = SimplePopoverViewDirectionNone;
         
         contentView = [[UIView alloc] init];
         contentView.backgroundColor = [UIColor whiteColor];
-        contentInset = UIEdgeInsetsMake(7.f,7.f,7.f,7.f);
         contentView.clipsToBounds = YES;
+        contentInset = UIEdgeInsetsMake(7.f,7.f,7.f,7.f);
+        [self addSubview:contentView];
         
         tintColor = nil;
-        [self addSubview:(boxImageView=[[UIImageView alloc] initWithImage:[self drawBox]])];
-        [self addSubview:(arrowImageView=[[UIImageView alloc] initWithImage:[self drawArrow]])];
-        [boxImageView addSubview:contentView];
-        [self bringSubviewToFront:contentView];
-        [self sendSubviewToBack:arrowImageView];
-        
-        boxImageView.userInteractionEnabled=YES;
     }
     return self;
 }
@@ -227,63 +296,6 @@
         self.anchor = newAnchor;
     }
     return self;
-}
-
--(UIImage*)drawBox {
-    const CGFloat radius = 10.f;
-    CGSize size = CGSizeMake(kMinimumSize,kMinimumSize);
-    UIGraphicsBeginImageContext(size);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-
-    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-    CGColorRef color = CGColorCreate(colorspace,(float[]){18.0/255.0,29.0/255.0,48.0/255.0,1.0});
-    CGContextSetFillColorWithColor(context,tintColor?tintColor.CGColor:color);
-    
-    CGContextBeginPath(context);
-    CGContextMoveToPoint(context,.0f,radius);
-    CGContextAddLineToPoint(context,.0f,size.height-radius);
-    CGContextAddArc(context,radius,size.height-radius,radius,M_PI,M_PI_2,1);
-    CGContextAddLineToPoint(context,size.width-radius,size.height);
-    CGContextAddArc(context,size.width-radius,size.height-radius,radius,M_PI_2,.0f,1);
-    CGContextAddLineToPoint(context,size.width,radius);
-    CGContextAddArc(context,size.width-radius,radius,radius,.0f,-M_PI_2,1);
-    CGContextAddLineToPoint(context,radius,.0f);
-    CGContextAddArc(context,radius,radius,radius,-M_PI_2,M_PI,1);
-    CGContextClosePath(context);
-    CGContextFillPath(context);
-    
-    UIImage* image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    CGColorSpaceRelease(colorspace);
-    CGColorRelease(color);
-    
-    return [image resizableImageWithCapInsets:UIEdgeInsetsMake(radius,radius,radius,radius)];
-}
--(UIImage*)drawArrow {
-    UIGraphicsBeginImageContext(CGSizeMake(kArrowSize.width+kArrowClip,kArrowSize.height));
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-    CGColorRef color = CGColorCreate(colorspace,(float[]){18.0/255.0,29.0/255.0,48.0/255.0,1.0});
-    CGContextSetFillColorWithColor(context,tintColor?tintColor.CGColor:color);
-    
-    CGContextBeginPath(context);
-    CGContextMoveToPoint(context,0,kArrowSize.height/2);
-    CGContextAddLineToPoint(context,kArrowSize.width,0);
-    CGContextAddLineToPoint(context,kArrowSize.width+kArrowClip,0);
-    CGContextAddLineToPoint(context,kArrowSize.width+kArrowClip,kArrowSize.height);
-    CGContextAddLineToPoint(context,kArrowSize.width,kArrowSize.height);
-    CGContextClosePath(context);
-    CGContextFillPath(context);
-    
-    UIImage* image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    CGColorSpaceRelease(colorspace);
-    CGColorRelease(color);
-    
-    return image;
 }
 
 -(void)setDirection:(SimplePopoverViewDirection)newDirection {
@@ -321,15 +333,14 @@
 -(void)setTintColor:(UIColor*)newTintColor {
     if(tintColor!=newTintColor) {
         tintColor = newTintColor;
-        [boxImageView setImage:[self drawBox]];
-        [arrowImageView setImage:[self drawArrow]];
+        [self setNeedsDisplay];
     }
 }
 
 -(void)showPopover { [self showPopoverAnimated:NO completion:nil]; }
 -(void)showPopoverAnimated:(BOOL)animated completion:(void(^)(void))completion; {
     if(self.superview) { if(completion) completion(); return; }
-    void (^completed)(BOOL finished) = ^(BOOL finished) {
+    void (^completed)(BOOL) = ^(BOOL finished) {
         self.alpha = 1;
         if(delegate&&[delegate respondsToSelector:@selector(popoverDidShowPopover:)])
             [delegate popoverDidShowPopover:self];
@@ -349,7 +360,7 @@
 -(void)dismissPopoverAnimated:(BOOL)animated completion:(void(^)(void))completion {
     if(!self.superview) { if(completion) completion(); return; }
     if([delegate respondsToSelector:@selector(popoverShouldDismissPopover:)]&&![delegate popoverShouldDismissPopover:self]) return;
-    void (^completed)(BOOL finished) = ^(BOOL finished) {
+    void (^completed)(BOOL) = ^(BOOL finished) {
         self.alpha = 0;
         [self removeFromSuperview];
         if(delegate&&[delegate respondsToSelector:@selector(popoverDidDismissPopover:)]) [delegate popoverDidDismissPopover:self];
