@@ -342,7 +342,7 @@
     else completed(YES);
     
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name: UIDeviceOrientationDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 -(void)dismissPopover { [self dismissPopoverAnimated:NO completion:nil]; }
@@ -359,7 +359,7 @@
          [UIView animateWithDuration:.3f animations:^{ self.alpha = 0; } completion:completed];
     else completed(YES);
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 -(void)deviceOrientationDidChange:(NSNotification*)notification {
