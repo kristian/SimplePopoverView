@@ -54,7 +54,7 @@
 
 -(void)layoutSubviews {
     CGPoint layoutOrigin = anchor?anchor.center:origin;
-    SimplePopoverViewDirection layoutDirection = direction!=SimplePopoverViewDirectionNone?direction:[self oppositeDirection:[self directionForGravity:[self gravityForPoint:layoutOrigin]]];
+    SimplePopoverViewDirection layoutDirection = direction!=SimplePopoverViewDirectionAny?direction:[self oppositeDirection:[self directionForGravity:[self gravityForPoint:layoutOrigin]]];
     if(anchor)
         switch(layoutDirection) {
             case SimplePopoverViewDirectionUp:   layoutOrigin.y -= anchor.frame.size.height/2; break;
@@ -63,7 +63,7 @@
             case SimplePopoverViewDirectionRight:layoutOrigin.x += anchor.frame.size.width/2; break;
             default: break;
         }
-
+    
     CGSize parentSize = parentViewController.view.bounds.size;
     CGRect layout=(CGRect){CGPointZero,contentSize},layoutBox=CGRectZero,layoutArrow=CGRectZero;
     layout.size.width += contentInset.left+contentInset.right;
@@ -71,6 +71,12 @@
     layout.size.height += contentInset.top+contentInset.bottom;
     CAP(layout.size.height,kMinimumSize,parentSize.height);
     layoutBox.size = layout.size;
+    if(layoutDirection==SimplePopoverViewDirectionNone) {
+        draw = [self drawBox:(self.frame=(CGRect){CGPointMake(layoutOrigin.x-layout.size.width/2,layoutOrigin.y-layout.size.height/2),layout.size}).size];
+        contentView.frame = CGRectMake(contentInset.left,contentInset.right,layout.size.width-contentInset.left-contentInset.right,layout.size.height-contentInset.top-contentInset.bottom);
+        [self setNeedsDisplay];
+        return;
+    }
     
     CGAffineTransform layoutRotate = CGAffineTransformIdentity; NSString* layoutSharp = nil;
     if(SimplePopoverViewDirectionIsHorizontal(layoutDirection)) {
@@ -256,7 +262,7 @@
     if([kCAGravityBottom isEqual:gravity]) return SimplePopoverViewDirectionDown;
     if([kCAGravityLeft   isEqual:gravity]) return SimplePopoverViewDirectionLeft;
     if([kCAGravityRight  isEqual:gravity]) return SimplePopoverViewDirectionRight;
-    return SimplePopoverViewDirectionNone;
+    return SimplePopoverViewDirectionAny;
 }
 -(SimplePopoverViewDirection)oppositeDirection:(SimplePopoverViewDirection)turnDirection {
     switch(turnDirection) {
@@ -264,17 +270,15 @@
         case SimplePopoverViewDirectionDown: return SimplePopoverViewDirectionUp;
         case SimplePopoverViewDirectionLeft: return SimplePopoverViewDirectionRight;
         case SimplePopoverViewDirectionRight:return SimplePopoverViewDirectionLeft;
-        default: return SimplePopoverViewDirectionNone;
+        default: return SimplePopoverViewDirectionAny;
     }
 }
 
--(id)initWithOrigin:(CGPoint)newOrigin withParentViewController:(UIViewController*)newParentViewController {
-    if((self=[super initWithFrame:CGRectZero])!=nil) {
-        origin = newOrigin;
-        parentViewController = newParentViewController;
-        
+-(id)initWithFrame:(CGRect)frame {
+    if((self=[super initWithFrame:frame])!=nil) {
         self.alpha = 0; self.opaque = NO;
         self.backgroundColor = [UIColor clearColor];
+        
         direction = SimplePopoverViewDirectionNone;
         
         contentView = [[UIView alloc] init];
@@ -288,9 +292,18 @@
     }
     return self;
 }
+-(id)initWithOrigin:(CGPoint)newOrigin withParentViewController:(UIViewController*)newParentViewController {
+    if((self=[self initWithFrame:CGRectZero])!=nil) {
+        origin = newOrigin;
+        parentViewController = newParentViewController;
+        
+        direction = SimplePopoverViewDirectionAny;
+    }
+    return self;
+}
 -(id)initFromView:(UIView*)newAnchor withParentViewController:(UIViewController*)newParentViewController {
     if((self=[self initWithOrigin:CGPointZero withParentViewController:parentViewController])!=nil) {
-        self.anchor = newAnchor;
+        anchor = newAnchor;
     }
     return self;
 }

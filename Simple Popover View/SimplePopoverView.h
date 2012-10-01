@@ -31,11 +31,12 @@
 #import <QuartzCore/QuartzCore.h>
 
 typedef enum {
-    SimplePopoverViewDirectionNone,
+    SimplePopoverViewDirectionAny,
     SimplePopoverViewDirectionLeft,
     SimplePopoverViewDirectionRight,
     SimplePopoverViewDirectionUp,
-    SimplePopoverViewDirectionDown
+    SimplePopoverViewDirectionDown,
+    SimplePopoverViewDirectionNone
 } SimplePopoverViewDirection;
 
 #define SimplePopoverViewDirectionIsHorizontal(direction) (direction==SimplePopoverViewDirectionLeft||direction==SimplePopoverViewDirectionRight)

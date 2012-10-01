@@ -44,8 +44,9 @@
 -(IBAction)actionButton:(id)sender {
     if(!popoverView.superview||popoverView.anchor!=sender) {
         [popoverView dismissPopoverAnimated:YES completion:^{
-            popoverView.anchor = (UIView*)sender;
             [self adjustText:sender];
+            popoverView.anchor = (UIView*)sender;
+            popoverView.direction = SimplePopoverViewDirectionAny;
             [popoverView showPopoverAnimated:YES completion:nil];
         }];
     } else [popoverView dismissPopoverAnimated:YES completion:nil];
@@ -53,15 +54,17 @@
 
 - (IBAction)actionRandom:(id)sender {
     [popoverView dismissPopoverAnimated:YES completion:^{
+        [self adjustText:sender];
         popoverView.anchor = nil;
         popoverView.origin = CGPointMake(rand()%(int)self.view.bounds.size.width,rand()%(int)self.view.bounds.size.height);
-        [self adjustText:sender];
+        popoverView.direction = rand()%1?SimplePopoverViewDirectionAny:SimplePopoverViewDirectionNone;
         [popoverView showPopoverAnimated:YES completion:nil];
     }];
 }
 
 - (IBAction)actionCorner:(id)sender {
     [popoverView dismissPopoverAnimated:YES completion:^{
+        [self adjustText:sender];
         popoverView.anchor = nil;
         switch(((UIView*)sender).tag) {
             case 0: popoverView.origin = CGPointMake(0.f,0.f); break;
@@ -70,7 +73,7 @@
             case 3: popoverView.origin = CGPointMake(self.view.bounds.size.width,self.view.bounds.size.height); break;
             default: break;
         }
-        [self adjustText:sender];
+        popoverView.direction = SimplePopoverViewDirectionAny;
         [popoverView showPopoverAnimated:YES completion:nil];
     }];
 }

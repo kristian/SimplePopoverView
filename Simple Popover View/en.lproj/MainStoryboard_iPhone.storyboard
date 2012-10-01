@@ -190,17 +190,6 @@
     <resources>
         <image name="Background.png" width="320" height="460"/>
     </resources>
-    <classes>
-        <class className="ViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/ViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="actionButton:"/>
-                <relationship kind="action" name="actionCorner:"/>
-                <relationship kind="action" name="actionRandom:"/>
-                <relationship kind="outlet" name="backgroundImage" candidateClass="UIImageView"/>
-            </relationships>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
