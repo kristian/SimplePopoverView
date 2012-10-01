@@ -63,16 +63,12 @@
             case SimplePopoverViewDirectionRight:layoutOrigin.x += anchor.frame.size.width/2; break;
             default: break;
         }
-    
+
     CGSize parentSize = parentViewController.view.bounds.size;
     CGRect layout=(CGRect){CGPointZero,contentSize},layoutBox=CGRectZero,layoutArrow=CGRectZero;
     layout.size.width += contentInset.left+contentInset.right;
-    if(SimplePopoverViewDirectionIsHorizontal(layoutDirection))
-        layout.size.width += kArrowSize.width;
     CAP(layout.size.width,kMinimumSize,parentSize.width);
     layout.size.height += contentInset.top+contentInset.bottom;
-    if(SimplePopoverViewDirectionIsVertical(layoutDirection))
-        layout.size.height += kArrowSize.height;
     CAP(layout.size.height,kMinimumSize,parentSize.height);
     layoutBox.size = layout.size;
     

@@ -11,6 +11,9 @@
 @interface ViewController () {
     UILabel* echoLabel;
 }
+
+-(void)adjustText:(id)sender;
+
 @end
 
 @implementation ViewController
@@ -19,12 +22,13 @@
 -(void)viewDidLoad {
     [super viewDidLoad];
     
-    echoLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,56.f,56.f)];
-    echoLabel.numberOfLines = 2;
-    echoLabel.font = [UIFont boldSystemFontOfSize:13];
+    echoLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,92.f,92.f)];
+    echoLabel.numberOfLines = 0;
+    echoLabel.font = [UIFont systemFontOfSize:11];
     echoLabel.textAlignment = UITextAlignmentCenter;
     
     popoverView = [[SimplePopoverView alloc] initWithOrigin:CGPointZero withParentViewController:self];
+    popoverView.contentSize = echoLabel.frame.size;
     [popoverView.contentView addSubview:echoLabel];
 }
 
@@ -41,7 +45,7 @@
     if(!popoverView.superview||popoverView.anchor!=sender) {
         [popoverView dismissPopoverAnimated:YES completion:^{
             popoverView.anchor = (UIView*)sender;
-            echoLabel.text = ((UIButton*)sender).titleLabel.text;
+            [self adjustText:sender];
             [popoverView showPopoverAnimated:YES completion:nil];
         }];
     } else [popoverView dismissPopoverAnimated:YES completion:nil];
@@ -51,7 +55,7 @@
     [popoverView dismissPopoverAnimated:YES completion:^{
         popoverView.anchor = nil;
         popoverView.origin = CGPointMake(rand()%(int)self.view.bounds.size.width,rand()%(int)self.view.bounds.size.height);
-        echoLabel.text = ((UIButton*)sender).titleLabel.text;
+        [self adjustText:sender];
         [popoverView showPopoverAnimated:YES completion:nil];
     }];
 }
@@ -66,9 +70,13 @@
             case 3: popoverView.origin = CGPointMake(self.view.bounds.size.width,self.view.bounds.size.height); break;
             default: break;
         }
-        echoLabel.text = ((UIButton*)sender).titleLabel.text;
+        [self adjustText:sender];
         [popoverView showPopoverAnimated:YES completion:nil];
     }];
+}
+
+-(void)adjustText:(id)sender {
+    echoLabel.text = [((UIButton*)sender).titleLabel.text stringByAppendingFormat:@". %@",@"Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat."];
 }
 
 @end

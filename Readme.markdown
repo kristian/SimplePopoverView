@@ -1,6 +1,8 @@
 SimplePopoverView
 =================
 
+<img src="https://raw.github.com/KayK/SimplePopoverView/master/Simple%20Popover%20View/Screenshot.png" border="0" alt="Screenshot">
+
 This project is a very simple version of the `UIPopoverController` for iOS. I wanted to create a simple, easy to use and flexible popover view for *iPhone* and *iPad*. Existing projects aim to copy the UIPopoverController functionality. I created a new implementation from scratch, optimized for iOS 6.0, to be used for any purpose.
 
 The class uses the `QuartzCore` framework to draw the popover, so there is no need to include any additional resources. The code is very compact (only *369 lines*) any easy to understand. Simply create a popover instance, snap it to a anchor view or origin point, set the content size and add any subview. That's it.

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F719FCBC1616818100F27D6E /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F719FCBB1616818100F27D6E /* Default-568h@2x.png */; };
+		F742895C16191695004D0F9F /* Screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = F742895B16191695004D0F9F /* Screenshot.png */; };
 		F75B2F60160B4B3300AFD7AC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F75B2F5F160B4B3300AFD7AC /* UIKit.framework */; };
 		F75B2F62160B4B3300AFD7AC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F75B2F61160B4B3300AFD7AC /* Foundation.framework */; };
 		F75B2F64160B4B3300AFD7AC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F75B2F63160B4B3300AFD7AC /* CoreGraphics.framework */; };
@@ -26,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		F719FCBB1616818100F27D6E /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		F742895B16191695004D0F9F /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 		F75B2F5B160B4B3300AFD7AC /* Simple Popover View.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Simple Popover View.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F75B2F5F160B4B3300AFD7AC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F75B2F61160B4B3300AFD7AC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -135,6 +137,7 @@
 				F75B5A9116163146009DBE7F /* Background.png */,
 				F75B5A9216163146009DBE7F /* Background@2x.png */,
 				F75B5A9316163146009DBE7F /* Background~ipad.png */,
+				F742895B16191695004D0F9F /* Screenshot.png */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 				F75B5A9516163146009DBE7F /* Background@2x.png in Resources */,
 				F75B5A9616163146009DBE7F /* Background~ipad.png in Resources */,
 				F719FCBC1616818100F27D6E /* Default-568h@2x.png in Resources */,
+				F742895C16191695004D0F9F /* Screenshot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
