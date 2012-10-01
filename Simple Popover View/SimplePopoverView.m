@@ -280,7 +280,8 @@
         contentView = [[UIView alloc] init];
         contentView.backgroundColor = [UIColor whiteColor];
         contentView.clipsToBounds = YES;
-        contentInset = UIEdgeInsetsMake(7.f,7.f,7.f,7.f);
+        contentView.layer.cornerRadius = 5.f;
+        contentInset = UIEdgeInsetsMake(6.f,6.f,6.f,6.f);
         [self addSubview:contentView];
         
         tintColor = nil;
