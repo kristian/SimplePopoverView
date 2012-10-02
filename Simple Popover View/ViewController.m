@@ -57,7 +57,7 @@
         [self adjustText:sender];
         popoverView.anchor = nil;
         popoverView.origin = CGPointMake(rand()%(int)self.view.bounds.size.width,rand()%(int)self.view.bounds.size.height);
-        popoverView.direction = rand()%1?SimplePopoverViewDirectionAny:SimplePopoverViewDirectionNone;
+        popoverView.direction = rand()%2?SimplePopoverViewDirectionAny:SimplePopoverViewDirectionNone;
         [popoverView showPopoverAnimated:YES completion:nil];
     }];
 }
