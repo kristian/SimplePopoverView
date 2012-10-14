@@ -29,6 +29,7 @@
 
 #import "SimplePopoverView.h"
 
+#define kCornerRadius 9.f
 #define kArrowSize CGSizeMake(18.f,36.f)
 #define kMinimumSize 70.f
 #define CAP(value,min,max) (value=MAX(min,MIN(max,value)))
@@ -50,7 +51,7 @@
 @end
 
 @implementation SimplePopoverView
-@synthesize direction,origin,anchor,contentView,contentSize,contentInset,tintColor,parentViewController,delegate;
+@synthesize direction,origin,anchor,contentView,contentSize,contentInset,popoverPadding,popoverColor,parentViewController,delegate;
 
 -(void)layoutSubviews {
     CGPoint layoutOrigin = anchor?anchor.center:origin;
@@ -67,9 +68,9 @@
     CGSize parentSize = parentViewController.view.bounds.size;
     CGRect layout=(CGRect){CGPointZero,contentSize},layoutBox=CGRectZero,layoutArrow=CGRectZero;
     layout.size.width += contentInset.left+contentInset.right;
-    CAP(layout.size.width,kMinimumSize,parentSize.width);
+    CAP(layout.size.width,kMinimumSize,parentSize.width-popoverPadding.left-popoverPadding.right);
     layout.size.height += contentInset.top+contentInset.bottom;
-    CAP(layout.size.height,kMinimumSize,parentSize.height);
+    CAP(layout.size.height,kMinimumSize,parentSize.height-popoverPadding.top-popoverPadding.bottom);
     layoutBox.size = layout.size;
     if(layoutDirection==SimplePopoverViewDirectionNone) {
         draw = [self drawBox:(self.frame=(CGRect){CGPointMake(layoutOrigin.x-layout.size.width/2,layoutOrigin.y-layout.size.height/2),layout.size}).size];
@@ -83,9 +84,9 @@
         CGPoint shift = CGPointZero;
         layout.size.width += kArrowSize.width;
         layout.origin.y = layoutOrigin.y-layout.size.height/2;
-             if(layout.origin.y<0) { shift.y+=/*-*/layout.origin.y; layout.origin.y = 0; }
-        else if(layout.origin.y+layout.size.height>parentSize.height) {
-            CGFloat shiftY = layout.origin.y+layout.size.height-parentSize.height;
+             if(layout.origin.y<popoverPadding.top) { shift.y+=/*-*/layout.origin.y-popoverPadding.top; layout.origin.y = popoverPadding.top; }
+        else if(layout.origin.y+layout.size.height>parentSize.height-popoverPadding.bottom) {
+            CGFloat shiftY = layout.origin.y+layout.size.height-parentSize.height+popoverPadding.bottom;
             layout.origin.y -= shiftY; shift.y += shiftY;
         }
         layoutArrow.size = CGSizeMake(kArrowSize.width,kArrowSize.height);
@@ -98,8 +99,8 @@
                 layoutBox.origin.x = 0.f;
                 layoutArrow.origin.x = layout.size.width-layoutArrow.size.width;
                 layoutRotate = CGAffineTransformMakeRotation(M_PI);
-                     if(layoutArrow.origin.y<8.f) layoutSharp = kCAGravityTopRight;
-                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-8.f) layoutSharp = kCAGravityBottomRight;
+                     if(layoutArrow.origin.y<7.5f) layoutSharp = kCAGravityTopRight;
+                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-7.5f) layoutSharp = kCAGravityBottomRight;
                 break;
             case SimplePopoverViewDirectionRight:
                 if(layout.size.width+layoutOrigin.x>parentSize.width)
@@ -108,8 +109,8 @@
                 layoutBox.origin.x = layoutArrow.size.width;
                 layoutArrow.origin.x = 0.f;
                 layoutRotate = CGAffineTransformIdentity;
-                     if(layoutArrow.origin.y<8.f) layoutSharp = kCAGravityTopLeft;
-                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-8.f) layoutSharp = kCAGravityBottomLeft;
+                     if(layoutArrow.origin.y<7.5f) layoutSharp = kCAGravityTopLeft;
+                else if(layoutArrow.origin.y+layoutArrow.size.height>layout.size.height-7.5f) layoutSharp = kCAGravityBottomLeft;
                 break;
             default: break;
         }
@@ -117,9 +118,9 @@
         CGPoint shift = CGPointZero;
         layout.size.height += kArrowSize.width;
         layout.origin.x = layoutOrigin.x-layout.size.width/2;
-             if(layout.origin.x<0) { shift.x+=/*-*/layout.origin.x; layout.origin.x = 0; }
-        else if(layout.origin.x+layout.size.width>parentSize.width) {
-            CGFloat shiftX = layout.origin.x+layout.size.width-parentSize.width;
+             if(layout.origin.x<popoverPadding.left) { shift.x+=/*-*/layout.origin.x-popoverPadding.left; layout.origin.x = popoverPadding.left; }
+        else if(layout.origin.x+layout.size.width>parentSize.width-popoverPadding.right) {
+            CGFloat shiftX = layout.origin.x+layout.size.width-parentSize.width+popoverPadding.right;
             layout.origin.x -= shiftX; shift.x += shiftX;
         }
         layoutArrow.size = CGSizeMake(kArrowSize.height,kArrowSize.width);
@@ -132,8 +133,8 @@
                 layoutBox.origin.y = 0.f;
                 layoutArrow.origin.y = layout.size.height-layoutArrow.size.height;
                 layoutRotate = CGAffineTransformMakeRotation(-M_PI_2);
-                     if(layoutArrow.origin.x<8.f) layoutSharp = kCAGravityBottomLeft;
-                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-8.f) layoutSharp = kCAGravityBottomRight;
+                     if(layoutArrow.origin.x<7.5f) layoutSharp = kCAGravityBottomLeft;
+                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-7.5f) layoutSharp = kCAGravityBottomRight;
                 break;
             case SimplePopoverViewDirectionDown:
                 if(layout.size.height+layoutOrigin.y>parentSize.height)
@@ -142,8 +143,8 @@
                 layoutBox.origin.y = layoutArrow.size.height;
                 layoutArrow.origin.y = 0.f;
                 layoutRotate = CGAffineTransformMakeRotation(M_PI_2);
-                     if(layoutArrow.origin.x<8.f) layoutSharp = kCAGravityTopLeft;
-                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-8.f) layoutSharp = kCAGravityTopRight;
+                     if(layoutArrow.origin.x<7.5f) layoutSharp = kCAGravityTopLeft;
+                else if(layoutArrow.origin.x+layoutArrow.size.width>layout.size.width-7.5f) layoutSharp = kCAGravityTopRight;
                 break;
             default: break;
         }
@@ -167,7 +168,7 @@
 
 -(CGPathRef)drawBox:(CGSize)size { return [self drawBox:size sharpCornerAtGravity:nil]; }
 -(CGPathRef)drawBox:(CGSize)size sharpCornerAtGravity:(NSString*)gravity {
-    const CGFloat radius = 10.f;
+    const CGFloat radius = kCornerRadius;
     
     CGMutablePathRef path = CGPathCreateMutable();
     CGPathMoveToPoint(path,NULL,0.f,radius);
@@ -215,7 +216,7 @@
     
     CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
     CGColorRef color = CGColorCreate(colorspace,(float[]){18.0/255.0,29.0/255.0,48.0/255.0,1.0});
-    CGContextSetFillColorWithColor(context,tintColor?tintColor.CGColor:color);
+    CGContextSetFillColorWithColor(context,popoverColor?popoverColor.CGColor:color);
     
     CGContextBeginPath(context);
     CGContextAddPath(context,draw);
@@ -288,7 +289,8 @@
         contentInset = UIEdgeInsetsMake(6.f,6.f,6.f,6.f);
         [self addSubview:contentView];
         
-        tintColor = nil;
+        popoverPadding = UIEdgeInsetsMake(20.f,20.f,20.f,20.f);
+        popoverColor = nil;
     }
     return self;
 }
@@ -340,9 +342,9 @@
     }
 }
 
--(void)setTintColor:(UIColor*)newTintColor {
-    if(tintColor!=newTintColor) {
-        tintColor = newTintColor;
+-(void)setpopoverColor:(UIColor*)newpopoverColor {
+    if(popoverColor!=newpopoverColor) {
+        popoverColor = newpopoverColor;
         [self setNeedsDisplay];
     }
 }

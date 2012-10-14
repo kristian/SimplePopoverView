@@ -54,7 +54,8 @@ typedef enum {
 @property(assign,nonatomic) CGSize contentSize;
 @property(assign,nonatomic) UIEdgeInsets contentInset;
 
-@property(strong,nonatomic) UIColor* tintColor;
+@property(assign,nonatomic) UIEdgeInsets popoverPadding;
+@property(strong,nonatomic) UIColor* popoverColor;
 
 @property(nonatomic,readonly) UIViewController* parentViewController;
 @property(weak,nonatomic) id<SimplePopoverViewDelegate> delegate;
