@@ -302,7 +302,7 @@
     return self;
 }
 -(id)initFromView:(UIView*)newAnchor withParentViewController:(UIViewController*)newParentViewController {
-    if((self=[self initWithOrigin:CGPointZero withParentViewController:parentViewController])!=nil) {
+    if((self=[self initWithOrigin:CGPointZero withParentViewController:newParentViewController])!=nil) {
         anchor = newAnchor;
     }
     return self;
